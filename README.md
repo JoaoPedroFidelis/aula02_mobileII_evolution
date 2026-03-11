@@ -1,39 +1,11 @@
-# TODO — Refatoração Arquitetural (Projeto Bagunçado)
+1. Em qual camada foi implementado o mecanismo de cache? Explique por que essa decisão é adequada dentro da arquitetura proposta.
+O cache foi orquestrado no Repositório, que decide quando usar dados locais, quando buscar no remoto e como fazer fallback, enquanto o armazenamento físico ficou no DataSource local com SharedPreferences, essa divisão mantém a regra de seleção de fonte no Repositório e limita o DataSource a operações de IO, deixando UI e ViewModel livres de detalhes de infraestrutura.
 
-Este projeto foi montado **de propósito** com:
-- **classes corretas** (responsabilidades adequadas dentro do arquivo),
-- porém **em lugares errados** na estrutura de pastas,
-- com **imports misturados** e uma estrutura pouco escalável.
+2. Por que o ViewModel não deve realizar chamadas HTTP diretamente?
+Porque o papel do ViewModel é coordenar estado e lógica de apresentação, ao depender do Repositório ele fica mais testável com dublês, reduz acoplamento com rede e permite trocar a origem dos dados sem alterar a UI.
 
-## Objetivo da atividade
-Refatorar para um padrão **feature-first** (por exemplo):
-```
-lib/
-  core/
-  features/
-    todos/
-      data/
-      domain/
-      presentation/
-```
+3. O que poderia acontecer se a interface acessasse diretamente o DataSource?
+Haveria acoplamento com infraestrutura, repetição de lógica de cache e tratamento de erros na própria tela, manutenção mais difícil e quebra do princípio de camadas.
 
-### Regras
-1. Não altere a lógica interna das classes (o comportamento deve continuar).
-2. Você pode ajustar **imports**, **paths**, e criar pastas.
-3. A UI **não pode** chamar HTTP nem SharedPreferences diretamente.
-4. O ViewModel **não pode** conhecer Widgets / BuildContext (exceto mensagens via estado).
-5. O Repository deve centralizar a escolha entre remoto/local.
-
-## Checklist de entrega
-- Projeto compila e roda
-- Estrutura de pastas organizada (feature-first)
-- `ARCH.md` explicando:
-  - diagrama do fluxo (UI → VM → Repo → DataSources)
-  - justificativa da estrutura
-  - decisões de responsabilidade
-
-## Como rodar
-1. `flutter pub get`
-2. `flutter run`
-
-> API usada: JSONPlaceholder (https://jsonplaceholder.typicode.com/todos)
+4. Como essa arquitetura facilitaria a substituição da API por um banco de dados local?
+A UI e o ViewModel permanecem iguais, basta introduzir um DataSource de banco e ajustar o Repositório para decidir entre banco e cache, a mudança fica localizada e transparente para as camadas superiores.
