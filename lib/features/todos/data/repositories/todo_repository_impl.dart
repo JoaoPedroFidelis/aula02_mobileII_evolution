@@ -2,6 +2,8 @@ import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../datasources/todo_remote_datasource.dart';
 import '../datasources/todo_local_datasource.dart';
+import '../models/todo_model.dart';
+import '../../../../core/domain/app_error.dart';
 
 class TodoRepositoryImpl implements TodoRepository {
   final TodoRemoteDataSource _remote = TodoRemoteDataSource();
@@ -9,27 +11,64 @@ class TodoRepositoryImpl implements TodoRepository {
 
   @override
   Future<TodoFetchResult> fetchTodos({bool forceRefresh = false}) async {
-    final models = await _remote.fetchTodos();
-    final now = DateTime.now();
-    await _local.saveLastSync(now);
+    List<TodoModel>? cached;
+    if (!forceRefresh) {
+      cached = await _local.getTodosCache();
+      if (cached != null && cached.isNotEmpty) {
+        final lastSync = await _local.getLastSync();
+        final label = lastSync == null ? null : lastSync.toLocal().toString();
+        return TodoFetchResult(
+          todos: cached.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+          lastSyncLabel: label,
+        );
+      }
+    }
 
-    final lastSync = await _local.getLastSync();
-    final label = lastSync == null ? null : lastSync.toLocal().toString();
+    try {
+      final models = await _remote.fetchTodos();
+      final now = DateTime.now();
+      await _local.saveLastSync(now);
+      await _local.saveTodosCache(models);
 
-    return TodoFetchResult(
-      todos: models.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
-      lastSyncLabel: label,
-    );
+      final lastSync = await _local.getLastSync();
+      final label = lastSync == null ? null : lastSync.toLocal().toString();
+
+      return TodoFetchResult(
+        todos: models.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+        lastSyncLabel: label,
+      );
+    } catch (e) {
+      if (cached != null && cached.isNotEmpty) {
+        final lastSync = await _local.getLastSync();
+        final label = lastSync == null ? null : lastSync.toLocal().toString();
+        return TodoFetchResult(
+          todos: cached.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+          lastSyncLabel: label,
+        );
+      }
+      throw const AppError('Falha na comunicação com a API');
+    }
   }
 
   @override
   Future<Todo> addTodo(String title) async {
     final created = await _remote.addTodo(title);
+    final cached = await _local.getTodosCache() ?? <TodoModel>[];
+    final updated = [created, ...cached];
+    await _local.saveTodosCache(updated);
     return Todo(id: created.id, title: created.title, completed: created.completed);
   }
 
   @override
   Future<void> updateCompleted({required int id, required bool completed}) {
-    return _remote.updateCompleted(id: id, completed: completed);
+    return _remote.updateCompleted(id: id, completed: completed).then((_) async {
+      final cached = await _local.getTodosCache();
+      if (cached == null) return;
+      final idx = cached.indexWhere((e) => e.id == id);
+      if (idx < 0) return;
+      final old = cached[idx];
+      cached[idx] = TodoModel(id: old.id, title: old.title, completed: completed);
+      await _local.saveTodosCache(cached);
+    });
   }
 }

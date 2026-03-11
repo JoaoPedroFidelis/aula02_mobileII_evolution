@@ -12,6 +12,7 @@ class TodosPage extends StatefulWidget {
 }
 
 class _TodosPageState extends State<TodosPage> {
+  String? _lastErrorShown;
   @override
   void initState() {
     super.initState();
@@ -23,6 +24,16 @@ class _TodosPageState extends State<TodosPage> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TodoViewModel>();
+
+    if (vm.errorMessage != null && vm.items.isNotEmpty && _lastErrorShown != vm.errorMessage) {
+      _lastErrorShown = vm.errorMessage;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(vm.errorMessage!)));
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(

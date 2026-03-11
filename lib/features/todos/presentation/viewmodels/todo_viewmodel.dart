@@ -2,18 +2,23 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 
+enum TodosStatus { idle, loading, success, error }
+
 class TodoViewModel extends ChangeNotifier {
   final TodoRepository _repo;
   TodoViewModel(this._repo);
 
-  bool isLoading = false;
+  TodosStatus status = TodosStatus.idle;
   String? errorMessage;
 
   final List<Todo> items = [];
   String? lastSyncLabel;
 
+  bool get isLoading => status == TodosStatus.loading;
+  bool get hasError => status == TodosStatus.error;
+
   Future<void> loadTodos({bool forceRefresh = false}) async {
-    isLoading = true;
+    status = TodosStatus.loading;
     errorMessage = null;
     notifyListeners();
 
@@ -23,10 +28,11 @@ class TodoViewModel extends ChangeNotifier {
         ..clear()
         ..addAll(result.todos);
       lastSyncLabel = result.lastSyncLabel;
+      status = TodosStatus.success;
     } catch (e) {
       errorMessage = 'Falha ao carregar: $e';
+      status = TodosStatus.error;
     } finally {
-      isLoading = false;
       notifyListeners();
     }
   }
