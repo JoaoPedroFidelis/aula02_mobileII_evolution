@@ -18,7 +18,9 @@ class TodoRepositoryImpl implements TodoRepository {
         final lastSync = await _local.getLastSync();
         final label = lastSync == null ? null : lastSync.toLocal().toString();
         return TodoFetchResult(
-          todos: cached.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+          todos: cached
+              .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+              .toList(),
           lastSyncLabel: label,
         );
       }
@@ -26,15 +28,28 @@ class TodoRepositoryImpl implements TodoRepository {
 
     try {
       final models = await _remote.fetchTodos();
+      final cachedById = {for (final m in (cached ?? <TodoModel>[])) m.id: m};
+      final mergedModels = models
+          .map(
+            (m) => TodoModel(
+              id: m.id,
+              title: m.title,
+              price: m.price,
+              completed: cachedById[m.id]?.completed ?? m.completed,
+            ),
+          )
+          .toList();
       final now = DateTime.now();
       await _local.saveLastSync(now);
-      await _local.saveTodosCache(models);
+      await _local.saveTodosCache(mergedModels);
 
       final lastSync = await _local.getLastSync();
       final label = lastSync == null ? null : lastSync.toLocal().toString();
 
       return TodoFetchResult(
-        todos: models.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+        todos: mergedModels
+            .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+            .toList(),
         lastSyncLabel: label,
       );
     } catch (e) {
@@ -42,7 +57,9 @@ class TodoRepositoryImpl implements TodoRepository {
         final lastSync = await _local.getLastSync();
         final label = lastSync == null ? null : lastSync.toLocal().toString();
         return TodoFetchResult(
-          todos: cached.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+          todos: cached
+              .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+              .toList(),
           lastSyncLabel: label,
         );
       }
@@ -56,7 +73,7 @@ class TodoRepositoryImpl implements TodoRepository {
     final cached = await _local.getTodosCache() ?? <TodoModel>[];
     final updated = [created, ...cached];
     await _local.saveTodosCache(updated);
-    return Todo(id: created.id, title: created.title, completed: created.completed);
+    return Todo(id: created.id, title: created.title, price: created.price, completed: created.completed);
   }
 
   @override
@@ -67,7 +84,7 @@ class TodoRepositoryImpl implements TodoRepository {
       final idx = cached.indexWhere((e) => e.id == id);
       if (idx < 0) return;
       final old = cached[idx];
-      cached[idx] = TodoModel(id: old.id, title: old.title, completed: completed);
+      cached[idx] = TodoModel(id: old.id, title: old.title, price: old.price, completed: completed);
       await _local.saveTodosCache(cached);
     });
   }

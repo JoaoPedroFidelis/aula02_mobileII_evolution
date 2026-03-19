@@ -4,6 +4,7 @@ class TodoModel extends Todo {
   const TodoModel({
     required super.id,
     required super.title,
+    required super.price,
     required super.completed,
   });
 
@@ -11,13 +12,16 @@ class TodoModel extends Todo {
     return TodoModel(
       id: (json['id'] as num).toInt(),
       title: (json['title'] ?? '').toString(),
-      completed: (json['completed'] ?? false) as bool,
+      price: (json['price'] ?? 0).toDouble(),
+      completed: (false) as bool,
+      // completed: (json['completed'] ?? false) as bool,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
+        'price': price,
         'completed': completed,
       };
 }

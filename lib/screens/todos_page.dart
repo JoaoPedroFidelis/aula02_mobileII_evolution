@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/add_todo_dialog.dart';
-import '../viewmodels/todo_viewmodel.dart';
+import '../features/todos/presentation/viewmodels/todo_viewmodel.dart';
 
-class TodosPage extends StatefulWidget {
+class TodosPage extends ConsumerStatefulWidget {
   const TodosPage({super.key});
 
   @override
-  State<TodosPage> createState() => _TodosPageState();
+  ConsumerState<TodosPage> createState() => _TodosPageState();
 }
 
-class _TodosPageState extends State<TodosPage> {
+class _TodosPageState extends ConsumerState<TodosPage> {
   @override
   void initState() {
     super.initState();
     // Carrega ao abrir
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TodoViewModel>().loadTodos();
+      ref.read(todoViewModelProvider).loadTodos();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<TodoViewModel>();
+    final vm = ref.watch(todoViewModelProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,18 +35,18 @@ class _TodosPageState extends State<TodosPage> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final title = await showDialog<String>(
-            context: context,
-            builder: (_) => const AddTodoDialog(),
-          );
-          if (title != null && title.trim().isNotEmpty) {
-            await vm.addTodo(title.trim());
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+      //     final title = await showDialog<String>(
+      //       context: context,
+      //       builder: (_) => const AddTodoDialog(),
+      //     );
+      //     if (title != null && title.trim().isNotEmpty) {
+      //       await vm.addTodo(title.trim());
+      //     }
+      //   },
+      //   child: const Icon(Icons.add),
+      // ),
       body: _body(vm),
     );
   }

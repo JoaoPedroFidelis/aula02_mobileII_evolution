@@ -8,7 +8,7 @@ class TodoRemoteDataSource {
   TodoRemoteDataSource([http.Client? client]) : _client = client ?? http.Client();
 
   Future<List<TodoModel>> fetchTodos() async {
-    final uri = Uri.parse('https://jsonplaceholder.typicode.com/todos?_limit=20');
+    final uri = Uri.parse('https://fakestoreapi.com/products');
     final res = await _client.get(uri);
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
@@ -20,7 +20,7 @@ class TodoRemoteDataSource {
   }
 
   Future<TodoModel> addTodo(String title) async {
-    final uri = Uri.parse('https://jsonplaceholder.typicode.com/todos');
+    final uri = Uri.parse('https://fakestoreapi.com/products');
     final res = await _client.post(
       uri,
       headers: {'Content-Type': 'application/json'},
@@ -36,7 +36,7 @@ class TodoRemoteDataSource {
   }
 
   Future<void> updateCompleted({required int id, required bool completed}) async {
-    final uri = Uri.parse('https://jsonplaceholder.typicode.com/todos/$id');
+    final uri = Uri.parse('https://fakestoreapi.com/products/$id');
     final res = await _client.patch(
       uri,
       headers: {'Content-Type': 'application/json'},

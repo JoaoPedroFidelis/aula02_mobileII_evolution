@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../viewmodels/todo_viewmodel.dart';
 import '../widgets/add_todo_dialog.dart';
 
-class TodosPage extends StatefulWidget {
+class TodosPage extends ConsumerStatefulWidget {
   const TodosPage({super.key});
 
   @override
-  State<TodosPage> createState() => _TodosPageState();
+  ConsumerState<TodosPage> createState() => _TodosPageState();
 }
 
-class _TodosPageState extends State<TodosPage> {
+class _TodosPageState extends ConsumerState<TodosPage> {
   String? _lastErrorShown;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TodoViewModel>().loadTodos();
+      ref.read(todoViewModelProvider).loadTodos();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<TodoViewModel>();
+    final vm = ref.watch(todoViewModelProvider);
 
     if (vm.errorMessage != null && vm.items.isNotEmpty && _lastErrorShown != vm.errorMessage) {
       _lastErrorShown = vm.errorMessage;
@@ -37,7 +37,7 @@ class _TodosPageState extends State<TodosPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Todos'),
+        title: const Text('Produtos'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -45,18 +45,18 @@ class _TodosPageState extends State<TodosPage> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final title = await showDialog<String>(
-            context: context,
-            builder: (_) => const AddTodoDialog(),
-          );
-          if (title != null && title.trim().isNotEmpty) {
-            await vm.addTodo(title.trim());
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+      //     final title = await showDialog<String>(
+      //       context: context,
+      //       builder: (_) => const AddTodoDialog(),
+      //     );
+      //     if (title != null && title.trim().isNotEmpty) {
+      //       await vm.addTodo(title.trim());
+      //     }
+      //   },
+      //   child: const Icon(Icons.add),
+      // ),
       body: _body(vm),
     );
   }
@@ -98,11 +98,13 @@ class _TodosPageState extends State<TodosPage> {
             );
           }
           final todo = vm.items[i - 1];
-          return CheckboxListTile(
-            value: todo.completed,
-            onChanged: (v) => vm.toggleCompleted(todo.id, v ?? false),
+          return ListTile(
             title: Text(todo.title),
-            subtitle: Text('ID: ${todo.id}'),
+            subtitle: Text('R\$ ${todo.price.toStringAsFixed(2)}'),
+            trailing: IconButton(
+              onPressed: () => vm.toggleCompleted(todo.id, !todo.completed),
+              icon: Icon(todo.completed ? Icons.star : Icons.star_border),
+            ),
           );
         },
       ),

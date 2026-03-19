@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
+import '../../data/repositories/todo_repository_impl.dart';
 
 enum TodosStatus { idle, loading, success, error }
 
@@ -70,3 +72,9 @@ class TodoViewModel extends ChangeNotifier {
     }
   }
 }
+
+final todoRepositoryProvider = Provider<TodoRepository>((ref) => TodoRepositoryImpl());
+
+final todoViewModelProvider = ChangeNotifierProvider<TodoViewModel>(
+  (ref) => TodoViewModel(ref.read(todoRepositoryProvider)),
+);
