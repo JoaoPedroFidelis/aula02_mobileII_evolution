@@ -13,7 +13,7 @@ class TodoModel extends Todo {
       id: (json['id'] as num).toInt(),
       title: (json['title'] ?? '').toString(),
       price: (json['price'] ?? 0).toDouble(),
-      completed: (false) as bool,
+      completed: false,
       // completed: (json['completed'] ?? false) as bool,
     );
   }

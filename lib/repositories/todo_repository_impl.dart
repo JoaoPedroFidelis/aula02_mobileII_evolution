@@ -15,10 +15,12 @@ class TodoRepositoryImpl implements TodoRepository {
     await _local.saveLastSync(now);
 
     final lastSync = await _local.getLastSync();
-    final label = lastSync == null ? null : lastSync.toLocal().toString();
+    final label = lastSync?.toLocal().toString();
 
     return TodoFetchResult(
-      todos: models.map((m) => Todo(id: m.id, title: m.title, completed: m.completed)).toList(),
+      todos: models
+          .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+          .toList(),
       lastSyncLabel: label,
     );
   }
@@ -26,7 +28,7 @@ class TodoRepositoryImpl implements TodoRepository {
   @override
   Future<Todo> addTodo(String title) async {
     final created = await _remote.addTodo(title);
-    return Todo(id: created.id, title: created.title, completed: created.completed);
+    return Todo(id: created.id, title: created.title, price: created.price, completed: created.completed);
   }
 
   @override

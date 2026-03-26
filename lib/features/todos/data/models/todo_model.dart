@@ -5,6 +5,9 @@ class TodoModel extends Todo {
     required super.id,
     required super.title,
     required super.price,
+    required super.description,
+    required super.image,
+    required super.category,
     required super.completed,
   });
 
@@ -13,6 +16,9 @@ class TodoModel extends Todo {
       id: (json['id'] as num).toInt(),
       title: (json['title'] ?? '').toString(),
       price: (json['price'] ?? 0).toDouble(),
+      description: (json['description'] ?? '').toString(),
+      image: (json['image'] ?? '').toString(),
+      category: (json['category'] ?? '').toString(),
       completed: (json['completed'] ?? false) as bool,
     );
   }
@@ -21,6 +27,9 @@ class TodoModel extends Todo {
         'id': id,
         'title': title,
         'price': price,
+        'description': description,
+        'image': image,
+        'category': category,
         'completed': completed,
       };
 }

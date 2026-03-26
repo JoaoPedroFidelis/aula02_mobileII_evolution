@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../viewmodels/todo_viewmodel.dart';
-import '../widgets/add_todo_dialog.dart';
+import 'product_details_page.dart';
 
 class TodosPage extends ConsumerStatefulWidget {
   const TodosPage({super.key});
@@ -99,6 +99,26 @@ class _TodosPageState extends ConsumerState<TodosPage> {
           }
           final todo = vm.items[i - 1];
           return ListTile(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProductDetailsPage(product: todo)),
+              );
+            },
+            leading: todo.image.trim().isEmpty
+                ? const CircleAvatar(child: Icon(Icons.shopping_bag))
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      todo.image,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const CircleAvatar(
+                        child: Icon(Icons.broken_image),
+                      ),
+                    ),
+                  ),
             title: Text(todo.title),
             subtitle: Text('R\$ ${todo.price.toStringAsFixed(2)}'),
             trailing: IconButton(

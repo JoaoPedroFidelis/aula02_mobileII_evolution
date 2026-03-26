@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../features/todos/presentation/pages/todos_page.dart';
+import '../../features/todos/presentation/pages/initial_page.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -8,9 +8,9 @@ class AppRoot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TODO Refatoração',
+      title: 'Produtos Fake API',
       theme: ThemeData(useMaterial3: true),
-      home: const TodosPage(),
+      home: const InitialPage(),
     );
   }
 }

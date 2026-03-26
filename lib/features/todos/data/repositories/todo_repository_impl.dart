@@ -16,10 +16,20 @@ class TodoRepositoryImpl implements TodoRepository {
       cached = await _local.getTodosCache();
       if (cached != null && cached.isNotEmpty) {
         final lastSync = await _local.getLastSync();
-        final label = lastSync == null ? null : lastSync.toLocal().toString();
+        final label = lastSync?.toLocal().toString();
         return TodoFetchResult(
           todos: cached
-              .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+              .map(
+                (m) => Todo(
+                  id: m.id,
+                  title: m.title,
+                  price: m.price,
+                  description: m.description,
+                  image: m.image,
+                  category: m.category,
+                  completed: m.completed,
+                ),
+              )
               .toList(),
           lastSyncLabel: label,
         );
@@ -35,6 +45,9 @@ class TodoRepositoryImpl implements TodoRepository {
               id: m.id,
               title: m.title,
               price: m.price,
+              description: m.description,
+              image: m.image,
+              category: m.category,
               completed: cachedById[m.id]?.completed ?? m.completed,
             ),
           )
@@ -44,21 +57,41 @@ class TodoRepositoryImpl implements TodoRepository {
       await _local.saveTodosCache(mergedModels);
 
       final lastSync = await _local.getLastSync();
-      final label = lastSync == null ? null : lastSync.toLocal().toString();
+      final label = lastSync?.toLocal().toString();
 
       return TodoFetchResult(
         todos: mergedModels
-            .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+            .map(
+              (m) => Todo(
+                id: m.id,
+                title: m.title,
+                price: m.price,
+                description: m.description,
+                image: m.image,
+                category: m.category,
+                completed: m.completed,
+              ),
+            )
             .toList(),
         lastSyncLabel: label,
       );
     } catch (e) {
       if (cached != null && cached.isNotEmpty) {
         final lastSync = await _local.getLastSync();
-        final label = lastSync == null ? null : lastSync.toLocal().toString();
+        final label = lastSync?.toLocal().toString();
         return TodoFetchResult(
           todos: cached
-              .map((m) => Todo(id: m.id, title: m.title, price: m.price, completed: m.completed))
+              .map(
+                (m) => Todo(
+                  id: m.id,
+                  title: m.title,
+                  price: m.price,
+                  description: m.description,
+                  image: m.image,
+                  category: m.category,
+                  completed: m.completed,
+                ),
+              )
               .toList(),
           lastSyncLabel: label,
         );
@@ -73,7 +106,15 @@ class TodoRepositoryImpl implements TodoRepository {
     final cached = await _local.getTodosCache() ?? <TodoModel>[];
     final updated = [created, ...cached];
     await _local.saveTodosCache(updated);
-    return Todo(id: created.id, title: created.title, price: created.price, completed: created.completed);
+    return Todo(
+      id: created.id,
+      title: created.title,
+      price: created.price,
+      description: created.description,
+      image: created.image,
+      category: created.category,
+      completed: created.completed,
+    );
   }
 
   @override
@@ -84,7 +125,15 @@ class TodoRepositoryImpl implements TodoRepository {
       final idx = cached.indexWhere((e) => e.id == id);
       if (idx < 0) return;
       final old = cached[idx];
-      cached[idx] = TodoModel(id: old.id, title: old.title, price: old.price, completed: completed);
+      cached[idx] = TodoModel(
+        id: old.id,
+        title: old.title,
+        price: old.price,
+        description: old.description,
+        image: old.image,
+        category: old.category,
+        completed: completed,
+      );
       await _local.saveTodosCache(cached);
     });
   }
