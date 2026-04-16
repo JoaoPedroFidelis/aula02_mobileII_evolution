@@ -1,0 +1,69 @@
+@startuml
+title Arquitetura MVVM (Flutter + Riverpod) — Feature Todos
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+package "View (Presentation)\nlib/features/todos/presentation" <<Layer>> #DDEEFF {
+  [main.dart\n(App entry)] as Main
+  [AppRoot\n(core/presentation)] as AppRoot
+  [InitialPage\n(pages)] as InitialPage
+  [TodosPage\n(pages)] as TodosPage
+}
+
+package "ViewModel\nlib/features/todos/presentation/viewmodels" <<Layer>> #FFF2CC {
+  [todoViewModelProvider\n(ChangeNotifierProvider)] as TodoVMProvider
+  [todoRepositoryProvider\n(Provider)] as TodoRepoProvider
+  [TodoViewModel\n(ChangeNotifier)] as TodoVM
+}
+
+package "Model\n(Domain + Data)" <<Layer>> #E2F0D9 {
+  package "Domain\nlib/features/todos/domain" {
+    [Todo\n(Entity)] as TodoEntity
+    [TodoRepository\n(Contract)] as TodoRepo
+    [TodoFetchResult] as TodoFetchResult
+  }
+
+  package "Data\nlib/features/todos/data" {
+    [TodoRepositoryImpl] as TodoRepoImpl
+    [TodoRemoteDataSource] as RemoteDS
+    [TodoLocalDataSource] as LocalDS
+    [TodoModel\n(DTO)] as TodoModel
+  }
+
+  package "Core\nlib/core" {
+    [AppError] as AppError
+  }
+
+  [http.Client] <<external>> as Http
+  [SharedPreferences] <<external>> as SharedPrefs
+  [FakeStore API\nhttps://fakestoreapi.com] <<external>> as Api
+}
+
+Main --> AppRoot
+AppRoot --> InitialPage
+InitialPage --> TodosPage
+TodosPage ..> TodoVMProvider : ref.watch / ref.read
+
+TodoVMProvider --> TodoVM
+TodoVM --> TodoRepo : depends on
+
+TodoRepoProvider --> TodoRepoImpl
+TodoRepoImpl ..|> TodoRepo
+
+TodoRepoImpl --> RemoteDS
+TodoRepoImpl --> LocalDS
+
+RemoteDS --> Http
+Http --> Api
+
+LocalDS --> SharedPrefs
+
+RemoteDS --> TodoModel : fromJson()
+LocalDS --> TodoModel : cache JSON
+TodoModel --|> TodoEntity
+
+TodoVM --> TodoEntity : items (state)
+TodoRepoImpl --> AppError : throw (falha API)
+
+@enduml
