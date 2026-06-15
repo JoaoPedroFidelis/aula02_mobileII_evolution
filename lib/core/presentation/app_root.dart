@@ -13,6 +13,7 @@ class AppRoot extends ConsumerWidget {
     final session = ref.watch(authSessionProvider);
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'DummyJSON Produtos',
       theme: ThemeData(useMaterial3: true),
       home: session.isBootstrapping

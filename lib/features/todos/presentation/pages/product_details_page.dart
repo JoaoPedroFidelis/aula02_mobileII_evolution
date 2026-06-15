@@ -18,9 +18,20 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final repo = ref.read(productRepositoryProvider);
+    final vm = ref.watch(productsViewModelProvider);
+    final isFav = vm.isFavorite(widget.productId);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalhes do produto')),
+      appBar: AppBar(
+        title: const Text('Detalhes do produto'),
+        actions: [
+          IconButton(
+            onPressed: () => vm.toggleFavorite(widget.productId),
+            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
+            tooltip: isFav ? 'Remover dos favoritos' : 'Marcar como favorito',
+          ),
+        ],
+      ),
       body: FutureBuilder<Product>(
         future: repo.fetchProductById(widget.productId),
         builder: (context, snap) {

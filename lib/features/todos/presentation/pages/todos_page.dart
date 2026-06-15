@@ -111,6 +111,7 @@ class _TodosPageState extends ConsumerState<TodosPage> {
             );
           }
           final product = vm.items[i - 1];
+          final isFav = vm.isFavorite(product.id);
           return ListTile(
             onTap: () {
               Navigator.push(
@@ -134,6 +135,12 @@ class _TodosPageState extends ConsumerState<TodosPage> {
                   ),
             title: Text(product.title),
             subtitle: Text('R\$ ${product.price.toStringAsFixed(2)}'),
+            trailing: IconButton(
+              onPressed: () => vm.toggleFavorite(product.id),
+              icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
+              color: isFav ? Theme.of(context).colorScheme.primary : null,
+              tooltip: isFav ? 'Remover dos favoritos' : 'Marcar como favorito',
+            ),
           );
         },
       ),

@@ -15,9 +15,11 @@ class ProductsViewModel extends ChangeNotifier {
 
   final List<Product> items = [];
   String? lastSyncLabel;
+  final Set<int> favoriteIds = <int>{};
 
   bool get isLoading => status == ProductsStatus.loading;
   bool get hasError => status == ProductsStatus.error;
+  bool isFavorite(int productId) => favoriteIds.contains(productId);
 
   Future<void> loadProducts({bool forceRefresh = false}) async {
     status = ProductsStatus.loading;
@@ -25,6 +27,11 @@ class ProductsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final favorites = await _repo.fetchFavoriteIds();
+      favoriteIds
+        ..clear()
+        ..addAll(favorites);
+
       final result = await _repo.fetchProducts(forceRefresh: forceRefresh);
       items
         ..clear()
@@ -35,6 +42,22 @@ class ProductsViewModel extends ChangeNotifier {
       errorMessage = 'Falha ao carregar: $e';
       status = ProductsStatus.error;
     } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleFavorite(int productId) async {
+    final next = !isFavorite(productId);
+    try {
+      await _repo.setFavorite(productId: productId, isFavorite: next);
+      if (next) {
+        favoriteIds.add(productId);
+      } else {
+        favoriteIds.remove(productId);
+      }
+      notifyListeners();
+    } catch (e) {
+      errorMessage = 'Falha ao atualizar favorito: $e';
       notifyListeners();
     }
   }

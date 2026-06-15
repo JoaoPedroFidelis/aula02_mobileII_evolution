@@ -8,6 +8,7 @@ class AppRoot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'TODO Refatoração',
       theme: ThemeData(useMaterial3: true),
       home: const TodosPage(),

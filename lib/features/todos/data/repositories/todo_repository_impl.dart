@@ -131,4 +131,18 @@ class ProductRepositoryImpl implements ProductRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<Set<int>> fetchFavoriteIds() => _local.getFavoriteIds();
+
+  @override
+  Future<void> setFavorite({required int productId, required bool isFavorite}) async {
+    final ids = await _local.getFavoriteIds();
+    if (isFavorite) {
+      ids.add(productId);
+    } else {
+      ids.remove(productId);
+    }
+    await _local.saveFavoriteIds(ids);
+  }
 }
