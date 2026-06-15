@@ -4,77 +4,44 @@ import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../../data/repositories/todo_repository_impl.dart';
 
-enum TodosStatus { idle, loading, success, error }
+enum ProductsStatus { idle, loading, success, error }
 
-class TodoViewModel extends ChangeNotifier {
-  final TodoRepository _repo;
-  TodoViewModel(this._repo);
+class ProductsViewModel extends ChangeNotifier {
+  final ProductRepository _repo;
+  ProductsViewModel(this._repo);
 
-  TodosStatus status = TodosStatus.idle;
+  ProductsStatus status = ProductsStatus.idle;
   String? errorMessage;
 
-  final List<Todo> items = [];
+  final List<Product> items = [];
   String? lastSyncLabel;
 
-  bool get isLoading => status == TodosStatus.loading;
-  bool get hasError => status == TodosStatus.error;
+  bool get isLoading => status == ProductsStatus.loading;
+  bool get hasError => status == ProductsStatus.error;
 
-  Future<void> loadTodos({bool forceRefresh = false}) async {
-    status = TodosStatus.loading;
+  Future<void> loadProducts({bool forceRefresh = false}) async {
+    status = ProductsStatus.loading;
     errorMessage = null;
     notifyListeners();
 
     try {
-      final result = await _repo.fetchTodos(forceRefresh: forceRefresh);
+      final result = await _repo.fetchProducts(forceRefresh: forceRefresh);
       items
         ..clear()
-        ..addAll(result.todos);
+        ..addAll(result.products);
       lastSyncLabel = result.lastSyncLabel;
-      status = TodosStatus.success;
+      status = ProductsStatus.success;
     } catch (e) {
       errorMessage = 'Falha ao carregar: $e';
-      status = TodosStatus.error;
+      status = ProductsStatus.error;
     } finally {
-      notifyListeners();
-    }
-  }
-
-  Future<void> addTodo(String title) async {
-    if (title.trim().isEmpty) {
-      errorMessage = 'Título não pode ser vazio.';
-      notifyListeners();
-      return;
-    }
-    try {
-      final created = await _repo.addTodo(title);
-      items.insert(0, created);
-      notifyListeners();
-    } catch (e) {
-      errorMessage = 'Falha ao adicionar: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> toggleCompleted(int id, bool completed) async {
-    final idx = items.indexWhere((t) => t.id == id);
-    if (idx < 0) return;
-
-    final old = items[idx];
-    items[idx] = old.copyWith(completed: completed);
-    notifyListeners();
-
-    try {
-      await _repo.updateCompleted(id: id, completed: completed);
-    } catch (e) {
-      items[idx] = old;
-      errorMessage = 'Falha ao atualizar: $e';
       notifyListeners();
     }
   }
 }
 
-final todoRepositoryProvider = Provider<TodoRepository>((ref) => TodoRepositoryImpl());
+final productRepositoryProvider = Provider<ProductRepository>((ref) => ProductRepositoryImpl());
 
-final todoViewModelProvider = ChangeNotifierProvider<TodoViewModel>(
-  (ref) => TodoViewModel(ref.read(todoRepositoryProvider)),
+final productsViewModelProvider = ChangeNotifierProvider<ProductsViewModel>(
+  (ref) => ProductsViewModel(ref.read(productRepositoryProvider)),
 );

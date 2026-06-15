@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/session/auth_session.dart';
 import '../viewmodels/todo_viewmodel.dart';
 import 'product_details_page.dart';
 
@@ -17,13 +18,20 @@ class _TodosPageState extends ConsumerState<TodosPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(todoViewModelProvider).loadTodos();
+      ref.read(productsViewModelProvider).loadProducts();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = ref.watch(todoViewModelProvider);
+    final vm = ref.watch(productsViewModelProvider);
+    final session = ref.watch(authSessionProvider);
+
+    if (!session.isBootstrapping && !session.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).popUntil((r) => r.isFirst);
+      });
+    }
 
     if (vm.errorMessage != null && vm.items.isNotEmpty && _lastErrorShown != vm.errorMessage) {
       _lastErrorShown = vm.errorMessage;
@@ -37,12 +45,17 @@ class _TodosPageState extends ConsumerState<TodosPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produtos'),
+        title: Text('Produtos (${session.user?.displayName ?? '-'})'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: vm.isLoading ? null : () => vm.loadTodos(forceRefresh: true),
+            onPressed: vm.isLoading ? null : () => vm.loadProducts(forceRefresh: true),
           )
+          ,
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: session.isSubmitting ? null : () => ref.read(authSessionProvider).logout(),
+          ),
         ],
       ),
       // floatingActionButton: FloatingActionButton(
@@ -61,7 +74,7 @@ class _TodosPageState extends ConsumerState<TodosPage> {
     );
   }
 
-  Widget _body(TodoViewModel vm) {
+  Widget _body(ProductsViewModel vm) {
     if (vm.isLoading && vm.items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -75,7 +88,7 @@ class _TodosPageState extends ConsumerState<TodosPage> {
               Text(vm.errorMessage!, textAlign: TextAlign.center),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () => vm.loadTodos(forceRefresh: true),
+                onPressed: () => vm.loadProducts(forceRefresh: true),
                 child: const Text('Tentar novamente'),
               ),
             ],
@@ -85,7 +98,7 @@ class _TodosPageState extends ConsumerState<TodosPage> {
     }
 
     return RefreshIndicator(
-      onRefresh: () => vm.loadTodos(forceRefresh: true),
+      onRefresh: () => vm.loadProducts(forceRefresh: true),
       child: ListView.separated(
         itemCount: vm.items.length + 1,
         separatorBuilder: (_, __) => const Divider(height: 1),
@@ -97,20 +110,20 @@ class _TodosPageState extends ConsumerState<TodosPage> {
               subtitle: Text(last),
             );
           }
-          final todo = vm.items[i - 1];
+          final product = vm.items[i - 1];
           return ListTile(
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => ProductDetailsPage(product: todo)),
+                MaterialPageRoute(builder: (_) => ProductDetailsPage(productId: product.id)),
               );
             },
-            leading: todo.image.trim().isEmpty
+            leading: product.thumbnail.trim().isEmpty
                 ? const CircleAvatar(child: Icon(Icons.shopping_bag))
                 : ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      todo.image,
+                      product.thumbnail,
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
@@ -119,12 +132,8 @@ class _TodosPageState extends ConsumerState<TodosPage> {
                       ),
                     ),
                   ),
-            title: Text(todo.title),
-            subtitle: Text('R\$ ${todo.price.toStringAsFixed(2)}'),
-            trailing: IconButton(
-              onPressed: () => vm.toggleCompleted(todo.id, !todo.completed),
-              icon: Icon(todo.completed ? Icons.star : Icons.star_border),
-            ),
+            title: Text(product.title),
+            subtitle: Text('R\$ ${product.price.toStringAsFixed(2)}'),
           );
         },
       ),

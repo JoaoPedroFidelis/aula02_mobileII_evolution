@@ -4,13 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:todo_refatoracao_baguncado/core/presentation/app_root.dart';
 
 void main() {
-  testWidgets('Mostra tela inicial', (tester) async {
+  testWidgets('Mostra tela de login quando não autenticado', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: AppRoot()));
     await tester.pumpAndSettle();
 
     expect(find.byType(MaterialApp), findsOneWidget);
-    expect(find.text('Início'), findsOneWidget);
-    expect(find.text('Ver produtos'), findsOneWidget);
+    expect(find.text('Login'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
   });
 }
-

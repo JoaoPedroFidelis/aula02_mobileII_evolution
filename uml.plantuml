@@ -37,7 +37,7 @@ package "Model\n(Domain + Data)" <<Layer>> #E2F0D9 {
 
   [http.Client] <<external>> as Http
   [SharedPreferences] <<external>> as SharedPrefs
-  [FakeStore API\nhttps://fakestoreapi.com] <<external>> as Api
+  [DummyJSON API\nhttps://dummyjson.com] <<external>> as Api
 }
 
 Main --> AppRoot

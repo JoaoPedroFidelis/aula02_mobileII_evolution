@@ -1,14 +1,13 @@
 import '../entities/todo.dart';
 
-abstract class TodoRepository {
-  Future<TodoFetchResult> fetchTodos({bool forceRefresh = false});
-  Future<Todo> addTodo(String title);
-  Future<void> updateCompleted({required int id, required bool completed});
+abstract class ProductRepository {
+  Future<ProductFetchResult> fetchProducts({bool forceRefresh = false});
+  Future<Product> fetchProductById(int id);
 }
 
-class TodoFetchResult {
-  final List<Todo> todos;
+class ProductFetchResult {
+  final List<Product> products;
   final String? lastSyncLabel;
 
-  const TodoFetchResult({required this.todos, required this.lastSyncLabel});
+  const ProductFetchResult({required this.products, required this.lastSyncLabel});
 }

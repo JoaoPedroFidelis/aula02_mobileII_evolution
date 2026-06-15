@@ -3,47 +3,32 @@ import 'package:http/http.dart' as http;
 
 import '../models/todo_model.dart';
 
-class TodoRemoteDataSource {
+class ProductRemoteDataSource {
   final http.Client _client;
-  TodoRemoteDataSource([http.Client? client]) : _client = client ?? http.Client();
+  ProductRemoteDataSource([http.Client? client]) : _client = client ?? http.Client();
 
-  Future<List<TodoModel>> fetchTodos() async {
-    final uri = Uri.parse('https://fakestoreapi.com/products');
+  Future<List<ProductModel>> fetchProducts({String? token}) async {
+    final uri = Uri.parse('https://dummyjson.com/products');
     final res = await _client.get(uri);
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
       throw Exception('HTTP ${res.statusCode}');
     }
 
-    final data = jsonDecode(res.body) as List;
-    return data.map((e) => TodoModel.fromJson(e as Map<String, dynamic>)).toList();
+    final obj = jsonDecode(res.body) as Map<String, dynamic>;
+    final list = (obj['products'] as List<dynamic>? ?? const <dynamic>[]);
+    return list.map((e) => ProductModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<TodoModel> addTodo(String title) async {
-    final uri = Uri.parse('https://fakestoreapi.com/products');
-    final res = await _client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'title': title, 'completed': false}),
-    );
+  Future<ProductModel> fetchProductById(int id, {String? token}) async {
+    final uri = Uri.parse('https://dummyjson.com/products/$id');
+    final res = await _client.get(uri);
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
       throw Exception('HTTP ${res.statusCode}');
     }
 
     final obj = jsonDecode(res.body) as Map<String, dynamic>;
-    return TodoModel.fromJson(obj);
-  }
-
-  Future<void> updateCompleted({required int id, required bool completed}) async {
-    final uri = Uri.parse('https://fakestoreapi.com/products/$id');
-    final res = await _client.patch(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'completed': completed}),
-    );
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('HTTP ${res.statusCode}');
-    }
+    return ProductModel.fromJson(obj);
   }
 }
